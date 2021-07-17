@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activities.MainActivity"
+    android:padding="35dp"
+    android:background="@color/white"
+    >
+<LinearLayout
+    android:id="@+id/linearLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="horizontal">
+    <Button
+        android:id="@+id/btnCommunication"
+        android:layout_width="250dp"
+        android:onClick="onMainClick"
+        android:layout_height="100dp"
+        android:layout_margin="20dp"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:text="Общение"
+        android:textSize="28sp"
+        android:textAllCaps="false"/>
+    <Button
+        android:id="@+id/btnGallery"
+        android:layout_width="250dp"
+        android:onClick="onMainClick"
+        android:layout_height="100dp"
+        android:layout_margin="20dp"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:text="Галерея"
+        android:textSize="28sp"
+        android:textAllCaps="false"/>
+</LinearLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="75dp">
+        <ImageButton
+            android:id="@+id/btnSettings"
+            android:layout_width="50dp"
+            android:onClick="onMainClick"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/settings"
+            android:background="@drawable/roundbutton"/>
+    </RelativeLayout>
+
+</RelativeLayout>
