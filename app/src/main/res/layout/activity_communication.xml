@@ -10,35 +10,39 @@
     >
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="40dp"
+        android:background="@color/purple_700"
         >
         <ImageButton
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:background="@drawable/roundbutton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:src="@drawable/back"
+            android:background="@drawable/roundbutton"
             android:id="@+id/btnBackCommunication"
             android:onClick="onCommunicationClick"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="8dp"
             />
         <ImageButton
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:background="@drawable/roundbutton"
             android:id="@+id/btnHomeCommunication"
             android:src="@drawable/ic_baseline_home_24"
             android:layout_alignParentEnd="true"
             android:onClick="onCommunicationClick"
             android:layout_alignParentTop="true"
-            android:layout_marginEnd="24dp"
-            android:layout_marginTop="24dp"/>
+            android:layout_marginEnd="12dp"
+            android:layout_marginTop="8dp"/>
     </RelativeLayout>
-    <HorizontalScrollView
+    <com.authism.connect.Helpers.MyScrollView
+        android:id = "@+id/scrollCommunication"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.55"
+        android:orientation="horizontal"
         android:padding="20dp"
         >
         <LinearLayout
@@ -48,5 +52,14 @@
             android:orientation="horizontal">
 
         </LinearLayout>
-    </HorizontalScrollView>
+    </com.authism.connect.Helpers.MyScrollView>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:id="@+id/finalBoxCommunication"
+        android:padding="10dp"
+        android:layout_margin="10dp"
+        android:orientation="horizontal"
+        android:layout_height="0dp"
+        android:background="@drawable/border"
+        android:layout_weight="0.45"/>
 </LinearLayout>
