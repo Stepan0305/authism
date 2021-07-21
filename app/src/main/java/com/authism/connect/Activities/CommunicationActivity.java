@@ -51,6 +51,7 @@ public class CommunicationActivity extends AppCompatActivity {
     MyScrollView scrollView;
     ArrayList<Category> categories;
     String currentTheme;
+    ArrayList<Category> stack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +72,9 @@ public class CommunicationActivity extends AppCompatActivity {
         categories = new ArrayList<>(ArraysKeeper.communicationCards);
         DbHelper dbHelper = new DbHelper(this);
         categories.addAll(dbHelper.getAllChildCategories(currentTheme));
+        stack = new ArrayList<>();
         generateCards();
+
     }
 
     public void onCommunicationClick(View v) {
@@ -88,81 +91,7 @@ public class CommunicationActivity extends AppCompatActivity {
     private void generateCards() {
         //добавление карточек в box
         for (Category category : categories) {
-            LinearLayout card = new LinearLayout(this);
-            card.setOrientation(LinearLayout.VERTICAL);
-            card.setGravity(Gravity.CENTER);
-            card.setBackgroundColor(getResources().getColor(R.color.white));
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int) height / 4, (int) (height / 3.5));
-            params.setMarginEnd(10);
-            card.setLayoutParams(params);
-            ImageView img = new ImageView(this);
-            if (category.getPicturePath() == null) {
-                img.setImageResource(category.getPicture());
-            } else {
-                File imgFile = new File(category.getPicturePath());
-                if (imgFile.exists()) {
-                    Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                    img.setImageBitmap(myBitmap);
-                }
-            }
-            img.setLayoutParams(new LinearLayout.LayoutParams(height / 5, height / 5));
-            card.addView(img);
-            TextView tv = new TextView(this);
-            tv.setText(category.getName());
-            tv.setGravity(Gravity.CENTER);
-            tv.setTextColor(getResources().getColor(R.color.black));
-            tv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            card.addView(tv);
-            if (!currentTheme.equals("Общение") && (category.getName().equals("Я") || category.getName().equals("Хочу"))) {
-                finalBox.addView(card);
-            } else box.addView(card);
-            //так как из onTouch нельзя напрямую обращаться к переменным, создаем массив
-            final float[] coordinates = {0, 0};
-            card.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View view, MotionEvent event) {
-                    if (coordinates[0] == 0 && coordinates[1] == 0) {
-                        coordinates[0] = view.getX();
-                        coordinates[1] = view.getY();
-                        Log.d("coord", "x " + coordinates[0] + ", y" + coordinates[1]);
-                    }
-
-                    float xDown = 0, yDown = 0;
-                    switch (event.getActionMasked()) {
-                        case MotionEvent.ACTION_DOWN:
-                            xDown = event.getX();
-                            yDown = event.getY();
-                            scrollView.setScrollingEnabled(false);
-                            break;
-                        case MotionEvent.ACTION_MOVE:
-                            float movedX, movedY;
-                            movedX = (float) (event.getX() - view.getWidth() / 2.0);
-                            movedY = (float) (event.getY() - view.getHeight() / 2.0);
-                            Log.d("inf", view.getY() + " of " + box.getHeight());
-                            if (view.getY() > box.getHeight() * 0.6) {
-                                box.removeView(card);
-                                addCardToFinal(card, category);
-                                break;
-                            }
-                            float dX = movedX - xDown;
-                            float dY = movedY - yDown;
-                            view.setX(view.getX() + dX);
-                            view.setY(view.getY() + dY);
-                            break;
-                        case MotionEvent.ACTION_UP:
-                            if (category.getName().equals("Я")) {
-                                view.setX(0);
-                                view.setY(0);
-                            } else {
-                                view.setX(coordinates[0]);
-                                view.setY(coordinates[1]);
-                            }
-                            scrollView.setScrollingEnabled(true);
-                            break;
-                    }
-                    return true;
-                }
-            });
+            box.addView(getCardByCategory(category));
         }
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
@@ -181,7 +110,7 @@ public class CommunicationActivity extends AppCompatActivity {
         });
         ImageView img = new ImageView(this);
         img.setImageResource(R.drawable.add);
-        img.setLayoutParams(new LinearLayout.LayoutParams(height / 5, height / 5));
+        img.setLayoutParams(new LinearLayout.LayoutParams((int) (height / 5.5), (int) (height / 5.5)));
         card.addView(img);
         TextView tv = new TextView(this);
         tv.setText("Добавить карточку");
@@ -192,10 +121,8 @@ public class CommunicationActivity extends AppCompatActivity {
         box.addView(card);
     }
 
-    private void addCardToFinal(View card, Category category) {
-        card.setOnTouchListener(null);
-        card.setX(0);
-        card.setY(0);
+    private void addCardToFinal(Category category) {
+        stack.add(category);
         MediaPlayer mediaPlayer;
         if (category.getSoundPath() == null) {
             mediaPlayer = MediaPlayer.create(CommunicationActivity.this, category.getSound());
@@ -203,71 +130,134 @@ public class CommunicationActivity extends AppCompatActivity {
             mediaPlayer = MediaPlayer.create(CommunicationActivity.this, Uri.parse(category.getSoundPath()));
         }
         mediaPlayer.start();
-        if (category.getName().equals("Я")) {
-            finalBox.addView(card, 0);
-        } else if (category.getName().equals("Хочу")) {
-            int index = finalBox.getChildCount() == 0 ? 0 : 1;
-            finalBox.addView(card, index);
-        } else {
-            finalBox.addView(card, finalBox.getChildCount());
-            reDrawActivity(category);
-
+        finalBox.removeAllViews();
+        for (Category c : stack) {
+            View v = getCardByCategory(c);
+            if (c.getName().equals("Я")) {
+                finalBox.addView(v, 0);
+            } else if (c.getName().equals("Хочу")) {
+                int index = finalBox.getChildCount() == 0 ? 0 : 1;
+                finalBox.addView(v, index);
+            } else {
+                finalBox.addView(v, finalBox.getChildCount());
+                if (hasChildren(c.getName())) {
+                    reDrawActivity(c.getName());
+                }
+            }
+        }
+        if (stackFinished()) {
+            MediaPlayer.create(this, R.raw.congrats).start();
+            reDrawActivity("Общение");
+        } else if (stack.size() == 3) {
+            MediaPlayer.create(this, R.raw.sorry).start();
+            reDrawActivity(currentTheme);
         }
     }
 
-    private void reDrawActivity(Category category) {
+    private boolean stackFinished() {
+        boolean i = false;
+        boolean want = false;
+        boolean noChildren = false;
+        for (Category c : stack) {
+            if (c.getName().equals("Я")) {
+                i = true;
+            } else if (c.getName().equals("Хочу")) {
+                want = true;
+            }
+            noChildren = !hasChildren(c.getName());
+        }
+        return i && want && stack.size() == 3 && noChildren;
+    }
+
+    private boolean hasChildren(String theme) {
+        if (ArraysKeeper.getStaticArrayByName(theme) == null) return false;
+        else return true;
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private LinearLayout getCardByCategory(Category category) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setGravity(Gravity.CENTER);
+        card.setBackgroundColor(getResources().getColor(R.color.white));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int) height / 4, (int) (height / 3.5));
+        params.setMarginEnd(10);
+        card.setLayoutParams(params);
+        ImageView img = new ImageView(this);
+        if (category.getPicturePath() == null) {
+            img.setImageResource(category.getPicture());
+        } else {
+            File imgFile = new File(category.getPicturePath());
+            if (imgFile.exists()) {
+                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                img.setImageBitmap(myBitmap);
+            }
+        }
+        img.setLayoutParams(new LinearLayout.LayoutParams((int) (height / 5.5), (int) (height / 5.5)));
+        card.addView(img);
+        TextView tv = new TextView(this);
+        tv.setText(category.getName());
+        tv.setGravity(Gravity.CENTER);
+        tv.setTextColor(getResources().getColor(R.color.black));
+        tv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        card.addView(tv);
+        //так как из onTouch нельзя напрямую обращаться к переменным, создаем массив
+        final float[] coordinates = {0, 0};
+        card.setOnTouchListener((view, event) -> {
+            if (coordinates[0] == 0 && coordinates[1] == 0) {
+                coordinates[0] = view.getX();
+                coordinates[1] = view.getY();
+                Log.d("coord", "x " + coordinates[0] + ", y" + coordinates[1]);
+            }
+
+            float xDown = 0, yDown = 0;
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    xDown = event.getX();
+                    yDown = event.getY();
+                    scrollView.setScrollingEnabled(false);
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    float movedX, movedY;
+                    movedX = (float) (event.getX() - view.getWidth() / 2.0);
+                    movedY = (float) (event.getY() - view.getHeight() / 2.0);
+                    Log.d("inf", view.getY() + " of " + box.getHeight());
+                    if (view.getY() > box.getHeight() * 0.6) {
+                        box.removeView(card);
+                        addCardToFinal(category);
+                        break;
+                    }
+                    float dX = movedX - xDown;
+                    float dY = movedY - yDown;
+                    view.setX(view.getX() + dX);
+                    view.setY(view.getY() + dY);
+                    break;
+                case MotionEvent.ACTION_UP:
+                    if (category.getName().equals("Я")) {
+                        view.setX(0);
+                        view.setY(0);
+                    } else {
+                        view.setX(coordinates[0]);
+                        view.setY(coordinates[1]);
+                    }
+                    scrollView.setScrollingEnabled(true);
+                    break;
+            }
+            return true;
+        });
+        return card;
+    }
+
+    private void reDrawActivity(String theme) {
+        stack = new ArrayList<>();
         box.removeAllViews();
         finalBox.removeAllViews();
-        currentTheme = category.getName();
-        switch (currentTheme) {
-            case "Есть":
-                categories = new ArrayList<Category>(ArraysKeeper.eatCards);
-                categories.addAll(new DbHelper(this).getAllChildCategories(currentTheme));
-                generateCards();
-                break;
-            case "Играть":
-                categories = new ArrayList<Category>(ArraysKeeper.playCards);
-                categories.addAll(new DbHelper(this).getAllChildCategories(currentTheme));
-                generateCards();
-                break;
-            case "Пойти":
-                categories = new ArrayList<Category>(ArraysKeeper.goCards);
-                categories.addAll(new DbHelper(this).getAllChildCategories(currentTheme));
-                generateCards();
-                break;
-            case "Гигиена":
-                categories = new ArrayList<Category>(ArraysKeeper.hygieneCards);
-                categories.addAll(new DbHelper(this).getAllChildCategories(currentTheme));
-                generateCards();
-                break;
-            case "Пить":
-                categories = new ArrayList<Category>(ArraysKeeper.drinkCards);
-                categories.addAll(new DbHelper(this).getAllChildCategories(currentTheme));
-                generateCards();
-                break;
-            case "Рисовать":
-                categories = new ArrayList<Category>(ArraysKeeper.drawCards);
-                categories.addAll(new DbHelper(this).getAllChildCategories(currentTheme));
-                generateCards();
-                break;
-            case "Отдыхать":
-                categories = new ArrayList<Category>(ArraysKeeper.chillCards);
-                categories.addAll(new DbHelper(this).getAllChildCategories(currentTheme));
-                generateCards();
-                break;
-            default:
-                try {
-                    MediaPlayer player = MediaPlayer.create(this, R.raw.congrats);
-                    player.getCurrentPosition();
-                    player.start();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-//                categories = categories = new ArrayList<Category>(ArraysKeeper.communicationCards);
-//                categories.addAll(new DbHelper(this).getAllChildCategories(currentTheme));
-//                generateCards();
-                recreate();
-                break;
+        currentTheme = theme;
+        if (ArraysKeeper.getStaticArrayByName(currentTheme) != null) {
+            categories = new ArrayList<>(ArraysKeeper.getStaticArrayByName(currentTheme));
+            categories.addAll(new DbHelper(this).getAllChildCategories(currentTheme));
         }
+        generateCards();
+
     }
 }

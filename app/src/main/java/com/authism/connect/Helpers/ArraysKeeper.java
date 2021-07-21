@@ -1,6 +1,7 @@
 package com.authism.connect.Helpers;
 
 import com.authism.connect.Models.Category;
+import com.authism.connect.Models.DbHelper;
 import com.authism.connect.R;
 
 import java.util.ArrayList;
@@ -152,5 +153,38 @@ public class ArraysKeeper {
         colorCards.add(new Category("Желтый", R.raw.yellow, R.drawable.yellow));
         colorCards.add(new Category("Зеленый", R.raw.green, R.drawable.green));
         colorCards.add(new Category("Синий", R.raw.blue, R.drawable.blue));
+    }
+
+    public static ArrayList<Category> itemCards = new ArrayList<>();
+    static {
+        itemCards.add(new Category("Я", R.raw.i, R.drawable.i));
+        itemCards.add(new Category("Хочу", R.raw.want, R.drawable.want));
+        itemCards.add(new Category("Шампунь", R.raw.shampoo, R.drawable.shampoo));
+        itemCards.add(new Category("Зубная счетка", R.raw.toothbrush, R.drawable.toothbrush));
+        itemCards.add(new Category("Зубная паста", R.raw.toothpaste, R.drawable.toothpaste));
+    }
+    public static ArrayList<Category> getStaticArrayByName(String name){
+        switch (name){
+            case "Есть":
+                return eatCards;
+            case "Играть":
+                return playCards;
+            case "Пойти":
+                return goCards;
+            case "Гигиена":
+                return hygieneCards;
+            case "Пить":
+                return drinkCards;
+            case "Рисовать":
+                return drawCards;
+            case "Отдыхать":
+                return chillCards;
+            case "Общение":
+                return communicationCards;
+            case "Предметы":
+                return itemCards;
+            default:
+                return null;
+        }
     }
 }

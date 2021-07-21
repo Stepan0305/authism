@@ -18,27 +18,7 @@
         <activity
             android:name=".Activities.AddNewCardActivity"
             android:screenOrientation="landscape" />
-        <activity
-            android:name=".Activities.ChillActivity"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name=".Activities.DrawActivity"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name=".Activities.DrinkActivity"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name=".Activities.HygieneActivity"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name=".Activities.GoActivity"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name=".Activities.PlayActivity"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name=".Activities.EatActivity"
-            android:screenOrientation="landscape" />
+
         <activity
             android:name=".Activities.CommunicationActivity"
             android:screenOrientation="landscape" />
