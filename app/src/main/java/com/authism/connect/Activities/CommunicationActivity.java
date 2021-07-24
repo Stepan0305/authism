@@ -10,6 +10,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -34,7 +35,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * в этой и подобных Activity основную роль выполняет функция generateCards()
+ * в этой Activity основную роль выполняет функция generateCards()
  * сначала в ArrayList вносятся все карточки (как встроенные, так и кастомные)
  * встроенные карточки отличаются от кастомных тем, что картинка и звук и них хранятся в качестве ресурсов
  * вызываются ресурсы функциями getSound(), getPicture()
@@ -52,7 +53,9 @@ public class CommunicationActivity extends AppCompatActivity {
     ArrayList<Category> categories;
     String currentTheme;
     ArrayList<Category> stack;
-
+    int cardsCount;
+    double cardWidthDivider, cardHeightDivider, imgDivider;
+    boolean withBox;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,7 +70,18 @@ public class CommunicationActivity extends AppCompatActivity {
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         height = displayMetrics.heightPixels;
         width = displayMetrics.widthPixels;
-
+        cardsCount = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(this).getString("count", "3"));
+        withBox = Boolean.parseBoolean(PreferenceManager.getDefaultSharedPreferences(this).getString("withBox", "true"));
+        if (withBox){
+            cardWidthDivider = 4;
+            cardHeightDivider = 3.5;
+            imgDivider = 5.5;
+        } else{
+            cardWidthDivider = 2.5;
+            cardHeightDivider = 2;
+            imgDivider = 3.3;
+            finalBox.setVisibility(View.GONE);
+        }
         currentTheme = "Общение";
         categories = new ArrayList<>(ArraysKeeper.communicationCards);
         DbHelper dbHelper = new DbHelper(this);
@@ -97,7 +111,7 @@ public class CommunicationActivity extends AppCompatActivity {
         card.setOrientation(LinearLayout.VERTICAL);
         card.setGravity(Gravity.CENTER);
         card.setBackgroundColor(getResources().getColor(R.color.white));
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int) height / 4, (int) (height / 3.5));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int) (height / cardWidthDivider), (int) (height / cardHeightDivider));
         params.setMarginEnd(10);
         card.setLayoutParams(params);
         card.setOnClickListener(new View.OnClickListener() {
@@ -110,7 +124,7 @@ public class CommunicationActivity extends AppCompatActivity {
         });
         ImageView img = new ImageView(this);
         img.setImageResource(R.drawable.add);
-        img.setLayoutParams(new LinearLayout.LayoutParams((int) (height / 5.5), (int) (height / 5.5)));
+        img.setLayoutParams(new LinearLayout.LayoutParams((int) (height / imgDivider), (int) (height / imgDivider)));
         card.addView(img);
         TextView tv = new TextView(this);
         tv.setText("Добавить карточку");
@@ -148,7 +162,7 @@ public class CommunicationActivity extends AppCompatActivity {
         if (stackFinished()) {
             MediaPlayer.create(this, R.raw.congrats).start();
             reDrawActivity("Общение");
-        } else if (stack.size() == 3) {
+        } else if (stack.size() == cardsCount) {
             MediaPlayer.create(this, R.raw.sorry).start();
             reDrawActivity(currentTheme);
         }
@@ -166,12 +180,11 @@ public class CommunicationActivity extends AppCompatActivity {
             }
             noChildren = !hasChildren(c.getName());
         }
-        return i && want && stack.size() == 3 && noChildren;
+        return i && want && stack.size() == cardsCount && noChildren;
     }
 
     private boolean hasChildren(String theme) {
-        if (ArraysKeeper.getStaticArrayByName(theme) == null) return false;
-        else return true;
+        return ArraysKeeper.getStaticArrayByName(theme) != null;
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -180,7 +193,7 @@ public class CommunicationActivity extends AppCompatActivity {
         card.setOrientation(LinearLayout.VERTICAL);
         card.setGravity(Gravity.CENTER);
         card.setBackgroundColor(getResources().getColor(R.color.white));
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int) height / 4, (int) (height / 3.5));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int)( height / cardWidthDivider), (int) (height / cardHeightDivider));
         params.setMarginEnd(10);
         card.setLayoutParams(params);
         ImageView img = new ImageView(this);
@@ -193,7 +206,7 @@ public class CommunicationActivity extends AppCompatActivity {
                 img.setImageBitmap(myBitmap);
             }
         }
-        img.setLayoutParams(new LinearLayout.LayoutParams((int) (height / 5.5), (int) (height / 5.5)));
+        img.setLayoutParams(new LinearLayout.LayoutParams((int) (height / imgDivider), (int) (height / imgDivider)));
         card.addView(img);
         TextView tv = new TextView(this);
         tv.setText(category.getName());
@@ -202,49 +215,65 @@ public class CommunicationActivity extends AppCompatActivity {
         tv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         card.addView(tv);
         //так как из onTouch нельзя напрямую обращаться к переменным, создаем массив
-        final float[] coordinates = {0, 0};
-        card.setOnTouchListener((view, event) -> {
-            if (coordinates[0] == 0 && coordinates[1] == 0) {
-                coordinates[0] = view.getX();
-                coordinates[1] = view.getY();
-                Log.d("coord", "x " + coordinates[0] + ", y" + coordinates[1]);
-            }
+        if (withBox) {
+            final float[] coordinates = {0, 0};
+            card.setOnTouchListener((view, event) -> {
+                if (coordinates[0] == 0 && coordinates[1] == 0) {
+                    coordinates[0] = view.getX();
+                    coordinates[1] = view.getY();
+                    Log.d("coord", "x " + coordinates[0] + ", y" + coordinates[1]);
+                }
 
-            float xDown = 0, yDown = 0;
-            switch (event.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    xDown = event.getX();
-                    yDown = event.getY();
-                    scrollView.setScrollingEnabled(false);
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    float movedX, movedY;
-                    movedX = (float) (event.getX() - view.getWidth() / 2.0);
-                    movedY = (float) (event.getY() - view.getHeight() / 2.0);
-                    Log.d("inf", view.getY() + " of " + box.getHeight());
-                    if (view.getY() > box.getHeight() * 0.6) {
-                        box.removeView(card);
-                        addCardToFinal(category);
+                float xDown = 0, yDown = 0;
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        xDown = event.getX();
+                        yDown = event.getY();
+                        scrollView.setScrollingEnabled(false);
                         break;
-                    }
-                    float dX = movedX - xDown;
-                    float dY = movedY - yDown;
-                    view.setX(view.getX() + dX);
-                    view.setY(view.getY() + dY);
-                    break;
-                case MotionEvent.ACTION_UP:
-                    if (category.getName().equals("Я")) {
-                        view.setX(0);
-                        view.setY(0);
-                    } else {
-                        view.setX(coordinates[0]);
-                        view.setY(coordinates[1]);
-                    }
-                    scrollView.setScrollingEnabled(true);
-                    break;
-            }
-            return true;
-        });
+                    case MotionEvent.ACTION_MOVE:
+                        float movedX, movedY;
+                        movedX = (float) (event.getX() - view.getWidth() / 2.0);
+                        movedY = (float) (event.getY() - view.getHeight() / 2.0);
+                        Log.d("inf", view.getY() + " of " + box.getHeight());
+                        if (view.getY() > box.getHeight() * 0.6) {
+                            box.removeView(card);
+                            addCardToFinal(category);
+                            break;
+                        }
+                        float dX = movedX - xDown;
+                        float dY = movedY - yDown;
+                        view.setX(view.getX() + dX);
+                        view.setY(view.getY() + dY);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        if (category.getName().equals("Я")) {
+                            view.setX(0);
+                            view.setY(0);
+                        } else {
+                            view.setX(coordinates[0]);
+                            view.setY(coordinates[1]);
+                        }
+                        scrollView.setScrollingEnabled(true);
+                        break;
+                }
+                return true;
+            });
+        } else {
+            card.setOnClickListener(v -> {
+                MediaPlayer mediaPlayer;
+                if (category.getSoundPath() == null) {
+                    mediaPlayer = MediaPlayer.create(CommunicationActivity.this, category.getSound());
+                } else {
+                    mediaPlayer = MediaPlayer.create(CommunicationActivity.this, Uri.parse(category.getSoundPath()));
+                }
+                mediaPlayer.start();
+                if (hasChildren(category.getName())){
+                    reDrawActivity(category.getName());
+                }
+            });
+
+        }
         return card;
     }
 

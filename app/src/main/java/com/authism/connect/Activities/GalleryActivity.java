@@ -28,6 +28,7 @@ public class GalleryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_gallery);
 
         carousel = findViewById(R.id.carousel);
+        setCarouselContent(new ArrayList<>(ArraysKeeper.animalCards));
     }
     public void onMenuClick(View v){
         switch (v.getId()){
@@ -47,7 +48,10 @@ public class GalleryActivity extends AppCompatActivity {
                 elements = new ArrayList<>(ArraysKeeper.techCards);
 
         }
-        ArrayList<Category> finalElements = elements;
+        setCarouselContent(elements);
+    }
+
+    private void setCarouselContent(ArrayList<Category> finalElements){
         carousel.setImageListener(new ImageListener() {
             @Override
             public void setImageForPosition(int position, ImageView imageView) {
@@ -62,7 +66,7 @@ public class GalleryActivity extends AppCompatActivity {
                 player.start();
             }
         });
-        carousel.setPageCount(elements.size());
+        carousel.setPageCount(finalElements.size());
     }
 
 }

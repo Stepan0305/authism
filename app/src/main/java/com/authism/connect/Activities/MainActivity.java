@@ -40,7 +40,9 @@ ImageButton btnSettings;
                 startActivity(i1);
                 break;
             case R.id.btnSettings:
-
+                Intent i2 = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(i2);
+                break;
             default:
                 break;
         }

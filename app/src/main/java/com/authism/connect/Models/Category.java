@@ -2,7 +2,7 @@ package com.authism.connect.Models;
 
 import java.io.Serializable;
 
-public class Category implements Serializable{
+public class Category {
     private String name;
     private int sound, picture;
     private String soundPath, picturePath;
