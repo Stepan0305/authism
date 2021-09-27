@@ -12,7 +12,6 @@ public class DbHelper extends SQLiteOpenHelper {
     //данные о бд
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "Cards";
-
     public static final String TABLE_CATEGORIES = "Categories";
     public static final String KEY_ID = "_id";
     public static final String CATEGORY_NAME = "name";

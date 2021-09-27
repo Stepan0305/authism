@@ -114,13 +114,10 @@ public class CommunicationActivity extends AppCompatActivity {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int) (height / cardWidthDivider), (int) (height / cardHeightDivider));
         params.setMarginEnd(10);
         card.setLayoutParams(params);
-        card.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(CommunicationActivity.this, AddNewCardActivity.class);
-                i.putExtra("parent", currentTheme);
-                startActivity(i);
-            }
+        card.setOnClickListener(v -> {
+            Intent i = new Intent(CommunicationActivity.this, AddNewCardActivity.class);
+            i.putExtra("parent", currentTheme);
+            startActivity(i);
         });
         ImageView img = new ImageView(this);
         img.setImageResource(R.drawable.add);
